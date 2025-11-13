@@ -368,6 +368,103 @@ class Rule9_Pronunciation(ScoringRule):
             return ScoreResult(self.name, 0, "无顺口组合")
 
 
+class Rule10_PatternAABB(ScoringRule):
+    """规则10: AABB模式 (如1122、5566)"""
+
+    def __init__(self, aabb_score: float = 20):
+        super().__init__("AABB模式", weight=1.0)
+        self.aabb_score = aabb_score
+
+    def calculate_score(self, plate_number: str) -> ScoreResult:
+        digits = self.extract_digits(plate_number)
+
+        if len(digits) < 4:
+            return ScoreResult(self.name, 0, "数字不足")
+
+        # 查找AABB模式
+        aabb_patterns = []
+        for i in range(len(digits) - 3):
+            if digits[i] == digits[i+1] and digits[i+2] == digits[i+3] and digits[i] != digits[i+2]:
+                pattern = digits[i:i+4]
+                aabb_patterns.append(pattern)
+
+        if aabb_patterns:
+            score = len(aabb_patterns) * self.aabb_score
+            patterns_str = ', '.join(aabb_patterns)
+            return ScoreResult(self.name, score * self.weight,
+                             f"含AABB模式: {patterns_str} (+{score:.0f})")
+        else:
+            return ScoreResult(self.name, 0, "无AABB模式")
+
+
+class Rule11_Palindrome(ScoringRule):
+    """规则11: 回文数字 (如121、1221、12321)"""
+
+    def __init__(self, palindrome_base_score: float = 15):
+        super().__init__("回文数字", weight=1.0)
+        self.palindrome_base_score = palindrome_base_score
+
+    def calculate_score(self, plate_number: str) -> ScoreResult:
+        digits = self.extract_digits(plate_number)
+
+        if len(digits) < 3:
+            return ScoreResult(self.name, 0, "数字不足")
+
+        # 检查整体是否为回文
+        if digits == digits[::-1]:
+            score = len(digits) * self.palindrome_base_score
+            return ScoreResult(self.name, score * self.weight,
+                             f"完整回文数: {digits} (+{score:.0f})")
+
+        # 查找最长的回文子串
+        max_palindrome_len = 0
+        max_palindrome = ""
+
+        for i in range(len(digits)):
+            for j in range(i + 3, len(digits) + 1):  # 至少3位
+                substring = digits[i:j]
+                if substring == substring[::-1]:
+                    if len(substring) > max_palindrome_len:
+                        max_palindrome_len = len(substring)
+                        max_palindrome = substring
+
+        if max_palindrome_len >= 3:
+            score = max_palindrome_len * self.palindrome_base_score
+            return ScoreResult(self.name, score * self.weight,
+                             f"含回文数: {max_palindrome} (+{score:.0f})")
+        else:
+            return ScoreResult(self.name, 0, "无回文数")
+
+
+class Rule12_PatternABAB(ScoringRule):
+    """规则12: ABAB模式 (如1212、3434)"""
+
+    def __init__(self, abab_score: float = 20):
+        super().__init__("ABAB模式", weight=1.0)
+        self.abab_score = abab_score
+
+    def calculate_score(self, plate_number: str) -> ScoreResult:
+        digits = self.extract_digits(plate_number)
+
+        if len(digits) < 4:
+            return ScoreResult(self.name, 0, "数字不足")
+
+        # 查找ABAB模式
+        abab_patterns = []
+        for i in range(len(digits) - 3):
+            if digits[i] == digits[i+2] and digits[i+1] == digits[i+3] and digits[i] != digits[i+1]:
+                pattern = digits[i:i+4]
+                abab_patterns.append(pattern)
+
+        if abab_patterns:
+            score = len(abab_patterns) * self.abab_score
+            patterns_str = ', '.join(abab_patterns)
+            return ScoreResult(self.name, score * self.weight,
+                             f"含ABAB模式: {patterns_str} (+{score:.0f})")
+        else:
+            return ScoreResult(self.name, 0, "无ABAB模式")
+
+
 class PlateScorer:
     """车牌评分器"""
 
@@ -476,6 +573,15 @@ def create_default_scorer(config_path: str = "scoring_rules.json") -> PlateScore
         "读音顺口": Rule9_Pronunciation(
             smooth_phrase_score=score_weights.get("smooth_phrase_score", 25),
             tone_variety_score=score_weights.get("tone_variety_score", 10)
+        ),
+        "AABB模式": Rule10_PatternAABB(
+            aabb_score=score_weights.get("aabb_score", 20)
+        ),
+        "回文数字": Rule11_Palindrome(
+            palindrome_base_score=score_weights.get("palindrome_base_score", 15)
+        ),
+        "ABAB模式": Rule12_PatternABAB(
+            abab_score=score_weights.get("abab_score", 20)
         )
     }
 

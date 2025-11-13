@@ -53,6 +53,24 @@
       "enabled": true,
       "weight": 1.0,
       "description": "包含顺口谐音组合(如168一路发、520我爱你)或音调抑扬顿挫"
+    },
+    {
+      "name": "AABB模式",
+      "enabled": true,
+      "weight": 1.0,
+      "description": "包含AABB模式(如1122、5566)"
+    },
+    {
+      "name": "回文数字",
+      "enabled": true,
+      "weight": 1.0,
+      "description": "包含回文数字(如121、1221、12321)"
+    },
+    {
+      "name": "ABAB模式",
+      "enabled": true,
+      "weight": 1.0,
+      "description": "包含ABAB模式(如1212、3434)"
     }
   ],
   "score_weights": {
@@ -67,6 +85,9 @@
     "special_letter_score": 10,
     "lucky_sequence_score": 30,
     "smooth_phrase_score": 25,
-    "tone_variety_score": 10
+    "tone_variety_score": 10,
+    "aabb_score": 20,
+    "palindrome_base_score": 15,
+    "abab_score": 20
   }
 }
