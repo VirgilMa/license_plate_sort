@@ -169,7 +169,7 @@ license_plate/
 ├── analyze_plates.py          # 主程序: 识别+评分
 ├── plate_scorer.py            # 评分引擎核心
 ├── scoring_rules.json         # 配置文件 ⭐
-├── test/                      # 测试代码
+├── tests/                     # 测试代码
 │   ├── test_pronunciation.py
 │   └── test_patterns.py
 ├── images/                    # 示例图片
