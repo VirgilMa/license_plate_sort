@@ -41,17 +41,32 @@
       "enabled": true,
       "weight": 1.0,
       "description": "含有MJTQ这几个字母的评分高"
+    },
+    {
+      "name": "幸运连号",
+      "enabled": true,
+      "weight": 1.0,
+      "description": "含有幸运连号(12, 312, 0312, 0228, 228, 28)的评分高"
+    },
+    {
+      "name": "读音顺口",
+      "enabled": true,
+      "weight": 1.0,
+      "description": "包含顺口谐音组合(如168一路发、520我爱你)或音调抑扬顿挫"
     }
   ],
   "score_weights": {
-    "no_four_bonus": 10,
-    "four_penalty_per_count": 5,
+    "no_four_bonus": 0,
+    "four_penalty_per_count": 40,
     "repeat_base_score": 15,
-    "lucky_digit_score": 8,
+    "lucky_digit_score": 20,
     "sequence_base_score": 20,
-    "all_even_odd_score": 25,
-    "all_prime_score": 30,
+    "all_even_odd_score": 20,
+    "all_prime_score": 20,
     "mostly_prime_score": 10,
-    "special_letter_score": 12
+    "special_letter_score": 10,
+    "lucky_sequence_score": 30,
+    "smooth_phrase_score": 25,
+    "tone_variety_score": 10
   }
 }
