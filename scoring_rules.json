@@ -1,0 +1,57 @@
+{
+  "rules": [
+    {
+      "name": "避免数字4",
+      "enabled": true,
+      "weight": 1.0,
+      "description": "含有数字4会降低评分"
+    },
+    {
+      "name": "连续重复数字",
+      "enabled": true,
+      "weight": 1.0,
+      "description": "连续重复的数字评分高，重复越多评分越高"
+    },
+    {
+      "name": "吉祥数字6/8",
+      "enabled": true,
+      "weight": 1.0,
+      "description": "含有6或8的评分高"
+    },
+    {
+      "name": "递增序列",
+      "enabled": true,
+      "weight": 1.0,
+      "description": "递增序列评分高"
+    },
+    {
+      "name": "全偶数或全奇数",
+      "enabled": true,
+      "weight": 1.0,
+      "description": "全是偶数或全是奇数评分高"
+    },
+    {
+      "name": "全质数",
+      "enabled": true,
+      "weight": 1.0,
+      "description": "全是质数评分高"
+    },
+    {
+      "name": "特殊字母MJTQ",
+      "enabled": true,
+      "weight": 1.0,
+      "description": "含有MJTQ这几个字母的评分高"
+    }
+  ],
+  "score_weights": {
+    "no_four_bonus": 10,
+    "four_penalty_per_count": 5,
+    "repeat_base_score": 15,
+    "lucky_digit_score": 8,
+    "sequence_base_score": 20,
+    "all_even_odd_score": 25,
+    "all_prime_score": 30,
+    "mostly_prime_score": 10,
+    "special_letter_score": 12
+  }
+}

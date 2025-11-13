@@ -1,0 +1,12 @@
+# 车牌识别脚本依赖包
+
+# 方法1: 使用 Tesseract OCR
+pytesseract>=0.3.10
+Pillow>=10.0.0
+opencv-python>=4.8.0
+numpy>=1.24.0
+
+# 方法2: 使用 EasyOCR (推荐，对中文支持更好)
+easyocr>=1.7.0
+torch>=2.0.0
+torchvision>=0.15.0
