@@ -14,6 +14,7 @@ from dataclasses import dataclass
 @dataclass
 class ScoreResult:
     """单个规则的评分结果"""
+
     rule_name: str
     score: float
     reason: str
@@ -46,11 +47,11 @@ class ScoringRule(ABC):
 
     def extract_digits(self, plate_number: str) -> str:
         """提取车牌中的数字部分"""
-        return ''.join(c for c in plate_number if c.isdigit())
+        return "".join(c for c in plate_number if c.isdigit())
 
     def extract_letters(self, plate_number: str) -> str:
         """提取车牌中的字母部分"""
-        return ''.join(c for c in plate_number if c.isalpha())
+        return "".join(c for c in plate_number if c.isalpha())
 
 
 class Rule1_NoFour(ScoringRule):
@@ -63,15 +64,20 @@ class Rule1_NoFour(ScoringRule):
 
     def calculate_score(self, plate_number: str) -> ScoreResult:
         digits = self.extract_digits(plate_number)
-        count_4 = digits.count('4')
+        count_4 = digits.count("4")
 
         if count_4 == 0:
             score = self.no_four_bonus
-            return ScoreResult(self.name, score * self.weight, f"无数字4 (+{score:.0f})")
+            return ScoreResult(
+                self.name, score * self.weight, f"无数字4 (+{score:.0f})"
+            )
         else:
             penalty = count_4 * self.four_penalty_per_count
-            return ScoreResult(self.name, -penalty * self.weight,
-                             f"含有{count_4}个数字4 (-{penalty:.0f})")
+            return ScoreResult(
+                self.name,
+                -penalty * self.weight,
+                f"含有{count_4}个数字4 (-{penalty:.0f})",
+            )
 
 
 class Rule2_ConsecutiveRepeats(ScoringRule):
@@ -89,7 +95,7 @@ class Rule2_ConsecutiveRepeats(ScoringRule):
 
         max_repeat = 1
         current_repeat = 1
-        repeat_digit = ''
+        repeat_digit = ""
 
         for i in range(1, len(digits)):
             if digits[i] == digits[i - 1]:
@@ -101,9 +107,14 @@ class Rule2_ConsecutiveRepeats(ScoringRule):
                 current_repeat = 1
 
         if max_repeat >= 2:
-            score = (max_repeat - 1) * self.repeat_base_score  # 2连得base分，3连得2*base分
-            return ScoreResult(self.name, score * self.weight,
-                             f"连续{max_repeat}个{repeat_digit} (+{score:.0f})")
+            score = (
+                max_repeat - 1
+            ) * self.repeat_base_score  # 2连得base分，3连得2*base分
+            return ScoreResult(
+                self.name,
+                score * self.weight,
+                f"连续{max_repeat}个{repeat_digit} (+{score:.0f})",
+            )
         else:
             return ScoreResult(self.name, 0, "无连续重复")
 
@@ -117,8 +128,8 @@ class Rule3_Lucky68(ScoringRule):
 
     def calculate_score(self, plate_number: str) -> ScoreResult:
         digits = self.extract_digits(plate_number)
-        count_6 = digits.count('6')
-        count_8 = digits.count('8')
+        count_6 = digits.count("6")
+        count_8 = digits.count("8")
 
         total_count = count_6 + count_8
 
@@ -131,8 +142,11 @@ class Rule3_Lucky68(ScoringRule):
                 details.append(f"{count_6}个6")
             if count_8 > 0:
                 details.append(f"{count_8}个8")
-            return ScoreResult(self.name, score * self.weight,
-                             f"含有{', '.join(details)} (+{score:.0f})")
+            return ScoreResult(
+                self.name,
+                score * self.weight,
+                f"含有{', '.join(details)} (+{score:.0f})",
+            )
 
 
 class Rule4_IncreasingSequence(ScoringRule):
@@ -159,9 +173,14 @@ class Rule4_IncreasingSequence(ScoringRule):
                 current_sequence = 1
 
         if max_sequence >= 3:
-            score = (max_sequence - 2) * self.sequence_base_score  # 3连得base分，4连得2*base分
-            return ScoreResult(self.name, score * self.weight,
-                             f"{max_sequence}位递增序列 (+{score:.0f})")
+            score = (
+                max_sequence - 2
+            ) * self.sequence_base_score  # 3连得base分，4连得2*base分
+            return ScoreResult(
+                self.name,
+                score * self.weight,
+                f"{max_sequence}位递增序列 (+{score:.0f})",
+            )
         else:
             return ScoreResult(self.name, 0, "无明显递增序列")
 
@@ -186,12 +205,18 @@ class Rule5_AllEvenOrOdd(ScoringRule):
 
         if all_even:
             score = self.all_even_odd_score
-            return ScoreResult(self.name, score * self.weight,
-                             f"全部{len(digits)}位为偶数 (+{score:.0f})")
+            return ScoreResult(
+                self.name,
+                score * self.weight,
+                f"全部{len(digits)}位为偶数 (+{score:.0f})",
+            )
         elif all_odd:
             score = self.all_even_odd_score
-            return ScoreResult(self.name, score * self.weight,
-                             f"全部{len(digits)}位为奇数 (+{score:.0f})")
+            return ScoreResult(
+                self.name,
+                score * self.weight,
+                f"全部{len(digits)}位为奇数 (+{score:.0f})",
+            )
         else:
             return ScoreResult(self.name, 0, "奇偶混合")
 
@@ -210,7 +235,7 @@ class Rule6_AllPrimes(ScoringRule):
         if len(digits) < 3:
             return ScoreResult(self.name, 0, "数字不足")
 
-        primes = {'2', '3', '5', '7'}
+        primes = {"2", "3", "5", "7"}
         digit_list = list(digits)
 
         prime_count = sum(1 for d in digit_list if d in primes)
@@ -218,12 +243,18 @@ class Rule6_AllPrimes(ScoringRule):
 
         if all_prime:
             score = self.all_prime_score
-            return ScoreResult(self.name, score * self.weight,
-                             f"全部{len(digits)}位为质数 (+{score:.0f})")
+            return ScoreResult(
+                self.name,
+                score * self.weight,
+                f"全部{len(digits)}位为质数 (+{score:.0f})",
+            )
         elif prime_count >= len(digits) * 0.6:  # 超过60%是质数
             score = self.mostly_prime_score
-            return ScoreResult(self.name, score * self.weight,
-                             f"{prime_count}/{len(digits)}位为质数 (+{score:.0f})")
+            return ScoreResult(
+                self.name,
+                score * self.weight,
+                f"{prime_count}/{len(digits)}位为质数 (+{score:.0f})",
+            )
         else:
             return ScoreResult(self.name, 0, f"仅{prime_count}位质数")
 
@@ -237,7 +268,7 @@ class Rule7_SpecialLetters(ScoringRule):
 
     def calculate_score(self, plate_number: str) -> ScoreResult:
         letters = self.extract_letters(plate_number).upper()
-        special_letters = set('MJTQ')
+        special_letters = set("MJTQ")
 
         found_letters = [l for l in letters if l in special_letters]
 
@@ -245,8 +276,11 @@ class Rule7_SpecialLetters(ScoringRule):
             return ScoreResult(self.name, 0, "无特殊字母")
         else:
             score = len(found_letters) * self.special_letter_score
-            return ScoreResult(self.name, score * self.weight,
-                             f"含有字母{', '.join(found_letters)} (+{score:.0f})")
+            return ScoreResult(
+                self.name,
+                score * self.weight,
+                f"含有字母{', '.join(found_letters)} (+{score:.0f})",
+            )
 
 
 class Rule8_LuckySequences(ScoringRule):
@@ -256,7 +290,7 @@ class Rule8_LuckySequences(ScoringRule):
         super().__init__("幸运连号", weight=1.0)
         self.lucky_sequence_score = lucky_sequence_score
         # 定义幸运连号列表，按长度从长到短排序（优先匹配长的）
-        self.lucky_sequences = ['0312', '0228', '312', '228', '28']
+        self.lucky_sequences = ["0312", "0228", "312", "228", "28"]
 
     def calculate_score(self, plate_number: str) -> ScoreResult:
         digits = self.extract_digits(plate_number)
@@ -275,9 +309,12 @@ class Rule8_LuckySequences(ScoringRule):
         else:
             # 每个幸运连号得分
             score = len(found_sequences) * self.lucky_sequence_score
-            seq_str = ', '.join(found_sequences)
-            return ScoreResult(self.name, score * self.weight,
-                             f"含有幸运连号: {seq_str} (+{score:.0f})")
+            seq_str = ", ".join(found_sequences)
+            return ScoreResult(
+                self.name,
+                score * self.weight,
+                f"含有幸运连号: {seq_str} (+{score:.0f})",
+            )
 
 
 class Rule9_Pronunciation(ScoringRule):
@@ -290,40 +327,40 @@ class Rule9_Pronunciation(ScoringRule):
 
         # 数字的音调 (1=阴平, 2=阳平, 3=上声, 4=去声, 5=轻声)
         self.digit_tones = {
-            '0': 2,  # 零 líng
-            '1': 1,  # 一 yī
-            '2': 4,  # 二 èr
-            '3': 1,  # 三 sān
-            '4': 4,  # 四 sì
-            '5': 3,  # 五 wǔ
-            '6': 4,  # 六 liù
-            '7': 1,  # 七 qī
-            '8': 1,  # 八 bā
-            '9': 3,  # 九 jiǔ
+            "0": 2,  # 零 líng
+            "1": 1,  # 一 yī
+            "2": 4,  # 二 èr
+            "3": 1,  # 三 sān
+            "4": 4,  # 四 sì
+            "5": 3,  # 五 wǔ
+            "6": 4,  # 六 liù
+            "7": 1,  # 七 qī
+            "8": 1,  # 八 bā
+            "9": 3,  # 九 jiǔ
         }
 
         # 常见的顺口谐音组合（吉利寓意）
         self.smooth_phrases = {
-            '168': '一路发',
-            '518': '我要发',
-            '668': '路路发',
-            '888': '发发发',
-            '666': '六六大顺',
-            '999': '久久久',
-            '520': '我爱你',
-            '1314': '一生一世',
-            '366': '三六六',
-            '289': '易发久',
-            '678': '路起发',
-            '789': '起发久',
-            '258': '易我发',
-            '358': '生我发',
-            '189': '要发久',
-            '689': '六发久',
-            '368': '生路发',
-            '566': '我路路',
-            '688': '路发发',
-            '588': '我发发',
+            "168": "一路发",
+            "518": "我要发",
+            "668": "路路发",
+            "888": "发发发",
+            "666": "六六大顺",
+            "999": "久久久",
+            "520": "我爱你",
+            "1314": "一生一世",
+            "366": "三六六",
+            "289": "易发久",
+            "678": "路起发",
+            "789": "起发久",
+            "258": "易我发",
+            "358": "生我发",
+            "189": "要发久",
+            "689": "六发久",
+            "368": "生路发",
+            "566": "我路路",
+            "688": "路发发",
+            "588": "我发发",
         }
 
     def calculate_score(self, plate_number: str) -> ScoreResult:
@@ -351,7 +388,7 @@ class Rule9_Pronunciation(ScoringRule):
             # 检查是否有音调变化（避免单调）
             has_tone_change = False
             for i in range(1, len(tones)):
-                if abs(tones[i] - tones[i-1]) >= 2:  # 音调差异较大
+                if abs(tones[i] - tones[i - 1]) >= 2:  # 音调差异较大
                     has_tone_change = True
                     break
 
@@ -362,8 +399,11 @@ class Rule9_Pronunciation(ScoringRule):
 
         if total_score > 0:
             reason_str = ", ".join(reasons)
-            return ScoreResult(self.name, total_score * self.weight,
-                             f"{reason_str} (+{total_score:.0f})")
+            return ScoreResult(
+                self.name,
+                total_score * self.weight,
+                f"{reason_str} (+{total_score:.0f})",
+            )
         else:
             return ScoreResult(self.name, 0, "无顺口组合")
 
@@ -384,15 +424,22 @@ class Rule10_PatternAABB(ScoringRule):
         # 查找AABB模式
         aabb_patterns = []
         for i in range(len(digits) - 3):
-            if digits[i] == digits[i+1] and digits[i+2] == digits[i+3] and digits[i] != digits[i+2]:
-                pattern = digits[i:i+4]
+            if (
+                digits[i] == digits[i + 1]
+                and digits[i + 2] == digits[i + 3]
+                and digits[i] != digits[i + 2]
+            ):
+                pattern = digits[i : i + 4]
                 aabb_patterns.append(pattern)
 
         if aabb_patterns:
             score = len(aabb_patterns) * self.aabb_score
-            patterns_str = ', '.join(aabb_patterns)
-            return ScoreResult(self.name, score * self.weight,
-                             f"含AABB模式: {patterns_str} (+{score:.0f})")
+            patterns_str = ", ".join(aabb_patterns)
+            return ScoreResult(
+                self.name,
+                score * self.weight,
+                f"含AABB模式: {patterns_str} (+{score:.0f})",
+            )
         else:
             return ScoreResult(self.name, 0, "无AABB模式")
 
@@ -413,8 +460,9 @@ class Rule11_Palindrome(ScoringRule):
         # 检查整体是否为回文
         if digits == digits[::-1]:
             score = len(digits) * self.palindrome_base_score
-            return ScoreResult(self.name, score * self.weight,
-                             f"完整回文数: {digits} (+{score:.0f})")
+            return ScoreResult(
+                self.name, score * self.weight, f"完整回文数: {digits} (+{score:.0f})"
+            )
 
         # 查找最长的回文子串
         max_palindrome_len = 0
@@ -430,8 +478,11 @@ class Rule11_Palindrome(ScoringRule):
 
         if max_palindrome_len >= 3:
             score = max_palindrome_len * self.palindrome_base_score
-            return ScoreResult(self.name, score * self.weight,
-                             f"含回文数: {max_palindrome} (+{score:.0f})")
+            return ScoreResult(
+                self.name,
+                score * self.weight,
+                f"含回文数: {max_palindrome} (+{score:.0f})",
+            )
         else:
             return ScoreResult(self.name, 0, "无回文数")
 
@@ -452,15 +503,22 @@ class Rule12_PatternABAB(ScoringRule):
         # 查找ABAB模式
         abab_patterns = []
         for i in range(len(digits) - 3):
-            if digits[i] == digits[i+2] and digits[i+1] == digits[i+3] and digits[i] != digits[i+1]:
-                pattern = digits[i:i+4]
+            if (
+                digits[i] == digits[i + 2]
+                and digits[i + 1] == digits[i + 3]
+                and digits[i] != digits[i + 1]
+            ):
+                pattern = digits[i : i + 4]
                 abab_patterns.append(pattern)
 
         if abab_patterns:
             score = len(abab_patterns) * self.abab_score
-            patterns_str = ', '.join(abab_patterns)
-            return ScoreResult(self.name, score * self.weight,
-                             f"含ABAB模式: {patterns_str} (+{score:.0f})")
+            patterns_str = ", ".join(abab_patterns)
+            return ScoreResult(
+                self.name,
+                score * self.weight,
+                f"含ABAB模式: {patterns_str} (+{score:.0f})",
+            )
         else:
             return ScoreResult(self.name, 0, "无ABAB模式")
 
@@ -514,7 +572,7 @@ def load_config(config_path: str = "scoring_rules.json") -> Optional[Dict]:
         return None
 
     try:
-        with open(config_path, 'r', encoding='utf-8') as f:
+        with open(config_path, "r", encoding="utf-8") as f:
             config = json.load(f)
         return config
     except Exception as e:
@@ -546,7 +604,7 @@ def create_default_scorer(config_path: str = "scoring_rules.json") -> PlateScore
     rule_map = {
         "避免数字4": Rule1_NoFour(
             no_four_bonus=score_weights.get("no_four_bonus", 10),
-            four_penalty_per_count=score_weights.get("four_penalty_per_count", 5)
+            four_penalty_per_count=score_weights.get("four_penalty_per_count", 5),
         ),
         "连续重复数字": Rule2_ConsecutiveRepeats(
             repeat_base_score=score_weights.get("repeat_base_score", 15)
@@ -562,7 +620,7 @@ def create_default_scorer(config_path: str = "scoring_rules.json") -> PlateScore
         ),
         "全质数": Rule6_AllPrimes(
             all_prime_score=score_weights.get("all_prime_score", 30),
-            mostly_prime_score=score_weights.get("mostly_prime_score", 10)
+            mostly_prime_score=score_weights.get("mostly_prime_score", 10),
         ),
         "特殊字母MJTQ": Rule7_SpecialLetters(
             special_letter_score=score_weights.get("special_letter_score", 12)
@@ -572,17 +630,13 @@ def create_default_scorer(config_path: str = "scoring_rules.json") -> PlateScore
         ),
         "读音顺口": Rule9_Pronunciation(
             smooth_phrase_score=score_weights.get("smooth_phrase_score", 25),
-            tone_variety_score=score_weights.get("tone_variety_score", 10)
+            tone_variety_score=score_weights.get("tone_variety_score", 10),
         ),
-        "AABB模式": Rule10_PatternAABB(
-            aabb_score=score_weights.get("aabb_score", 20)
-        ),
+        "AABB模式": Rule10_PatternAABB(aabb_score=score_weights.get("aabb_score", 20)),
         "回文数字": Rule11_Palindrome(
             palindrome_base_score=score_weights.get("palindrome_base_score", 15)
         ),
-        "ABAB模式": Rule12_PatternABAB(
-            abab_score=score_weights.get("abab_score", 20)
-        )
+        "ABAB模式": Rule12_PatternABAB(abab_score=score_weights.get("abab_score", 20)),
     }
 
     # 如果有配置文件，根据配置添加规则
@@ -604,8 +658,9 @@ def create_default_scorer(config_path: str = "scoring_rules.json") -> PlateScore
     return scorer
 
 
-def format_score_report(plate_number: str, total_score: float,
-                       score_details: List[ScoreResult]) -> str:
+def format_score_report(
+    plate_number: str, total_score: float, score_details: List[ScoreResult]
+) -> str:
     """格式化评分报告"""
     # 只显示得分不为0的规则
     active_rules = [r for r in score_details if r.score != 0]

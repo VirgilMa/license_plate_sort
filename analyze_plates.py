@@ -14,6 +14,7 @@ from dataclasses import dataclass
 @dataclass
 class PlateInfo:
     """车牌信息"""
+
     plate_number: str
     bbox: List[List[float]]
     confidence: float
@@ -49,7 +50,7 @@ def calculate_grid_positions(plates_data: List[Tuple]) -> List[Tuple[int, int]]:
     row_threshold = 50  # Y坐标差异阈值，可以调整
 
     for i in range(1, len(centers_sorted_by_y)):
-        prev_y = centers_sorted_by_y[i-1][1]
+        prev_y = centers_sorted_by_y[i - 1][1]
         curr_y = centers_sorted_by_y[i][1]
 
         if abs(curr_y - prev_y) < row_threshold:
@@ -69,7 +70,9 @@ def calculate_grid_positions(plates_data: List[Tuple]) -> List[Tuple[int, int]]:
     for row_idx, row in enumerate(rows, 1):
         # 按X坐标排序
         row_sorted = sorted(row, key=lambda c: c[0])
-        for col_idx, (center_x, center_y, bbox, text, confidence) in enumerate(row_sorted, 1):
+        for col_idx, (center_x, center_y, bbox, text, confidence) in enumerate(
+            row_sorted, 1
+        ):
             # 使用bbox作为key
             bbox_tuple = tuple(tuple(point) for point in bbox)
             positions[bbox_tuple] = (row_idx, col_idx)
@@ -113,14 +116,14 @@ def recognize_plates_from_image(image_path: str) -> List[PlateInfo]:
         image_height, image_width = img.shape[:2]
 
         # 初始化 EasyOCR（只使用英文模型）
-        reader = easyocr.Reader(['en'], gpu=False, verbose=False)
+        reader = easyocr.Reader(["en"], gpu=False, verbose=False)
 
         # 直接识别原始图片 - 使用基础参数
         results = reader.readtext(
             image_path,
             detail=1,
             paragraph=False,
-            allowlist='ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
+            allowlist="ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789",
         )
 
         print(f"DEBUG - OCR原始结果数量: {len(results)}")
@@ -129,15 +132,15 @@ def recognize_plates_from_image(image_path: str) -> List[PlateInfo]:
         plate_dict = {}  # 用于去重，key为位置，value为(text, confidence)
         print(f"\n识别到 {len(results)} 个文本区域")
 
-        for (bbox, text, confidence) in results:
+        for bbox, text, confidence in results:
             # 过滤置信度低于50%的结果
             if confidence < 0.5:
                 print(f"DEBUG - 置信度过低({confidence:.2%})，跳过: {text}")
                 continue
 
             # 清理文本
-            text_clean = text.replace(' ', '').replace('\n', '').upper()
-            text_clean = re.sub(r'[^A-Z0-9]', '', text_clean)  # 只保留字母和数字
+            text_clean = text.replace(" ", "").replace("\n", "").upper()
+            text_clean = re.sub(r"[^A-Z0-9]", "", text_clean)  # 只保留字母和数字
 
             # 简单的车牌格式验证
             if is_likely_plate(text_clean):
@@ -147,12 +150,17 @@ def recognize_plates_from_image(image_path: str) -> List[PlateInfo]:
 
                 # 检查是否与已有车牌位置重复（容差30像素）
                 is_duplicate = False
-                for (existing_cx, existing_cy) in plate_dict.keys():
-                    if abs(center_x - existing_cx) < 30 and abs(center_y - existing_cy) < 30:
+                for existing_cx, existing_cy in plate_dict.keys():
+                    if (
+                        abs(center_x - existing_cx) < 30
+                        and abs(center_y - existing_cy) < 30
+                    ):
                         # 位置重复，保留置信度更高的
                         if confidence > plate_dict[(existing_cx, existing_cy)][2]:
                             del plate_dict[(existing_cx, existing_cy)]
-                            print(f"DEBUG - 更新重复位置的车牌: {text_clean} (置信度: {confidence:.2%})")
+                            print(
+                                f"DEBUG - 更新重复位置的车牌: {text_clean} (置信度: {confidence:.2%})"
+                            )
                         else:
                             is_duplicate = True
                             print(f"DEBUG - 跳过重复位置的低置信度结果: {text_clean}")
@@ -172,7 +180,7 @@ def recognize_plates_from_image(image_path: str) -> List[PlateInfo]:
             return []
 
         plates = []
-        for (bbox, text_clean, confidence) in valid_plates:
+        for bbox, text_clean, confidence in valid_plates:
             # 计算 bounding box 中心坐标
             center_x = int(sum(point[0] for point in bbox) / 4)
             center_y = int(sum(point[1] for point in bbox) / 4)
@@ -185,10 +193,12 @@ def recognize_plates_from_image(image_path: str) -> List[PlateInfo]:
                 plate_number=text_clean,
                 bbox=bbox,
                 confidence=confidence,
-                center_pos=(center_x, center_y)
+                center_pos=(center_x, center_y),
             )
             plates.append(plate_info)
-            print(f"  - {text_clean:15s} (置信度: {confidence:.2%}, 中心坐标: ({center_x}, {center_y}), 左上角: ({top_left_x}, {top_left_y}))")
+            print(
+                f"  - {text_clean:15s} (置信度: {confidence:.2%}, 中心坐标: ({center_x}, {center_y}), 左上角: ({top_left_x}, {top_left_y}))"
+            )
 
         return plates
 
@@ -198,6 +208,7 @@ def recognize_plates_from_image(image_path: str) -> List[PlateInfo]:
     except Exception as e:
         print(f"识别出错: {e}")
         import traceback
+
         traceback.print_exc()
         return []
 
@@ -212,11 +223,11 @@ def recognize_plates_tesseract(image_path: str) -> List[str]:
         print("使用 Tesseract OCR 进行识别...")
 
         img = Image.open(image_path)
-        custom_config = r'--oem 3 --psm 6 -c tessedit_char_whitelist=ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
-        text = pytesseract.image_to_string(img, config=custom_config, lang='eng')
+        custom_config = r"--oem 3 --psm 6 -c tessedit_char_whitelist=ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+        text = pytesseract.image_to_string(img, config=custom_config, lang="eng")
 
         # 使用正则表达式提取车牌模式
-        pattern = r'[A-Z]{2,3}[A-Z0-9]{4,5}'
+        pattern = r"[A-Z]{2,3}[A-Z0-9]{4,5}"
         plates = re.findall(pattern, text)
 
         plates = list(set(plates))  # 去重
@@ -237,7 +248,7 @@ def is_likely_plate(text: str) -> bool:
     import re
 
     # 移除非字母数字字符
-    text = re.sub(r'[^A-Z0-9]', '', text.upper())
+    text = re.sub(r"[^A-Z0-9]", "", text.upper())
 
     # 长度检查
     if len(text) < 5 or len(text) > 8:
@@ -252,9 +263,9 @@ def is_likely_plate(text: str) -> bool:
 
     # 匹配常见车牌模式
     patterns = [
-        r'^[A-Z]{2,3}[A-Z0-9]{4,5}$',
-        r'^[A-Z]{2}[0-9]{4,5}$',
-        r'^[A-Z]{3}[0-9]{4}$',
+        r"^[A-Z]{2,3}[A-Z0-9]{4,5}$",
+        r"^[A-Z]{2}[0-9]{4,5}$",
+        r"^[A-Z]{3}[0-9]{4}$",
     ]
 
     for pattern in patterns:
@@ -318,7 +329,9 @@ def analyze_and_score_plates(image_path: str, output_file: str = None):
         if not active_rules:
             rule_summary = "无特殊加分项"
         else:
-            rule_summary = " | ".join([f"{r.rule_name}: {r.reason}" for r in active_rules])
+            rule_summary = " | ".join(
+                [f"{r.rule_name}: {r.reason}" for r in active_rules]
+            )
 
         # 添加位置信息和置信度
         center_x, center_y = plate_info.center_pos
@@ -331,7 +344,7 @@ def analyze_and_score_plates(image_path: str, output_file: str = None):
 
     # 保存到文件
     if output_file:
-        with open(output_file, 'w', encoding='utf-8') as f:
+        with open(output_file, "w", encoding="utf-8") as f:
             f.write("车牌评分结果\n")
             f.write("=" * 120 + "\n")
             f.write(f"图片: {image_path}\n")
@@ -351,10 +364,12 @@ def analyze_and_score_plates(image_path: str, output_file: str = None):
 
     # 推荐
     print("\n推荐选择:")
-    top_5 = scored_plates[:min(5, len(scored_plates))]
+    top_5 = scored_plates[: min(5, len(scored_plates))]
     for i, (plate_info, score, _) in enumerate(top_5, 1):
         center_x, center_y = plate_info.center_pos
-        print(f"  {i}. {plate_info.plate_number} (分数: {score:.1f}, 中心坐标: ({center_x}, {center_y}), 置信度: {plate_info.confidence:.2%})")
+        print(
+            f"  {i}. {plate_info.plate_number} (分数: {score:.1f}, 中心坐标: ({center_x}, {center_y}), 置信度: {plate_info.confidence:.2%})"
+        )
 
 
 def main():
@@ -372,6 +387,7 @@ def main():
     except Exception as e:
         print(f"\n发生错误: {e}")
         import traceback
+
         traceback.print_exc()
 
 

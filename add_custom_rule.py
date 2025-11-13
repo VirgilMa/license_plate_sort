@@ -8,6 +8,7 @@ from plate_scorer import ScoringRule, ScoreResult, PlateScorer, create_default_s
 
 # ==================== 自定义规则示例 ====================
 
+
 class Rule8_AvoidNumber7(ScoringRule):
     """示例规则8: 避免数字7"""
 
@@ -16,14 +17,15 @@ class Rule8_AvoidNumber7(ScoringRule):
 
     def calculate_score(self, plate_number: str) -> ScoreResult:
         digits = self.extract_digits(plate_number)
-        count_7 = digits.count('7')
+        count_7 = digits.count("7")
 
         if count_7 == 0:
             return ScoreResult(self.name, 5 * self.weight, "无数字7 (+5)")
         else:
             penalty = count_7 * 3
-            return ScoreResult(self.name, -penalty * self.weight,
-                             f"含有{count_7}个数字7 (-{penalty})")
+            return ScoreResult(
+                self.name, -penalty * self.weight, f"含有{count_7}个数字7 (-{penalty})"
+            )
 
 
 class Rule9_PalindromeNumber(ScoringRule):
@@ -40,17 +42,21 @@ class Rule9_PalindromeNumber(ScoringRule):
 
         if digits == digits[::-1]:
             score = 35
-            return ScoreResult(self.name, score * self.weight,
-                             f"完美回文 {digits} (+{score})")
+            return ScoreResult(
+                self.name, score * self.weight, f"完美回文 {digits} (+{score})"
+            )
         else:
             # 检查部分回文
             for length in range(len(digits), 2, -1):
                 for i in range(len(digits) - length + 1):
-                    substring = digits[i:i+length]
+                    substring = digits[i : i + length]
                     if substring == substring[::-1] and length >= 3:
                         score = (length - 2) * 8
-                        return ScoreResult(self.name, score * self.weight,
-                                         f"部分回文 {substring} (+{score})")
+                        return ScoreResult(
+                            self.name,
+                            score * self.weight,
+                            f"部分回文 {substring} (+{score})",
+                        )
 
             return ScoreResult(self.name, 0, "无回文")
 
@@ -72,8 +78,9 @@ class Rule10_SumDivisibleBy(ScoringRule):
 
         if digit_sum % self.divisor == 0:
             score = 15
-            return ScoreResult(self.name, score * self.weight,
-                             f"数字和={digit_sum} (+{score})")
+            return ScoreResult(
+                self.name, score * self.weight, f"数字和={digit_sum} (+{score})"
+            )
         else:
             return ScoreResult(self.name, 0, f"数字和={digit_sum}")
 
@@ -102,8 +109,9 @@ class Rule11_DecreasingSequence(ScoringRule):
 
         if max_sequence >= 3:
             score = (max_sequence - 2) * 18
-            return ScoreResult(self.name, score * self.weight,
-                             f"{max_sequence}位递减序列 (+{score})")
+            return ScoreResult(
+                self.name, score * self.weight, f"{max_sequence}位递减序列 (+{score})"
+            )
         else:
             return ScoreResult(self.name, 0, "无递减序列")
 
@@ -123,39 +131,49 @@ class Rule12_SpecificPattern(ScoringRule):
         # AABB 模式
         if len(digits) >= 4:
             for i in range(len(digits) - 3):
-                if (digits[i] == digits[i+1] and
-                    digits[i+2] == digits[i+3] and
-                    digits[i] != digits[i+2]):
+                if (
+                    digits[i] == digits[i + 1]
+                    and digits[i + 2] == digits[i + 3]
+                    and digits[i] != digits[i + 2]
+                ):
                     score = 25
                     pattern = f"{digits[i]}{digits[i]}{digits[i+2]}{digits[i+3]}"
-                    return ScoreResult(self.name, score * self.weight,
-                                     f"AABB模式 {pattern} (+{score})")
+                    return ScoreResult(
+                        self.name, score * self.weight, f"AABB模式 {pattern} (+{score})"
+                    )
 
         # ABAB 模式
         if len(digits) >= 4:
             for i in range(len(digits) - 3):
-                if (digits[i] == digits[i+2] and
-                    digits[i+1] == digits[i+3] and
-                    digits[i] != digits[i+1]):
+                if (
+                    digits[i] == digits[i + 2]
+                    and digits[i + 1] == digits[i + 3]
+                    and digits[i] != digits[i + 1]
+                ):
                     score = 28
                     pattern = f"{digits[i]}{digits[i+1]}{digits[i]}{digits[i+1]}"
-                    return ScoreResult(self.name, score * self.weight,
-                                     f"ABAB模式 {pattern} (+{score})")
+                    return ScoreResult(
+                        self.name, score * self.weight, f"ABAB模式 {pattern} (+{score})"
+                    )
 
         # ABC 模式（如123, 234, 345）
         if len(digits) >= 3:
             for i in range(len(digits) - 2):
-                if (int(digits[i+1]) == int(digits[i]) + 1 and
-                    int(digits[i+2]) == int(digits[i+1]) + 1):
+                if (
+                    int(digits[i + 1]) == int(digits[i]) + 1
+                    and int(digits[i + 2]) == int(digits[i + 1]) + 1
+                ):
                     score = 20
                     pattern = f"{digits[i]}{digits[i+1]}{digits[i+2]}"
-                    return ScoreResult(self.name, score * self.weight,
-                                     f"ABC模式 {pattern} (+{score})")
+                    return ScoreResult(
+                        self.name, score * self.weight, f"ABC模式 {pattern} (+{score})"
+                    )
 
         return ScoreResult(self.name, 0, "无特殊模式")
 
 
 # ==================== 使用示例 ====================
+
 
 def create_custom_scorer() -> PlateScorer:
     """创建带有自定义规则的评分器"""
@@ -178,13 +196,13 @@ def demo_custom_rules():
     print("=" * 100)
 
     test_plates = [
-        "CDP5747",    # 含有7和4
-        "CDM12321",   # 回文数字
-        "CDA55555",   # 多个重复
-        "CDQ6543",    # 递减序列
-        "CDT3366",    # AABB模式
-        "CD2828",     # ABAB模式
-        "CDM8888",    # 全8
+        "CDP5747",  # 含有7和4
+        "CDM12321",  # 回文数字
+        "CDA55555",  # 多个重复
+        "CDQ6543",  # 递减序列
+        "CDT3366",  # AABB模式
+        "CD2828",  # ABAB模式
+        "CDM8888",  # 全8
     ]
 
     # 使用默认规则
