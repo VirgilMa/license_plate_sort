@@ -24,7 +24,7 @@
 ### 1. 安装依赖
 
 ```bash
-pip install easyocr opencv-python numpy Pillow
+pip install -r requirements.txt
 ```
 
 ### 2. 准备配置文件
@@ -87,7 +87,8 @@ pip install pytesseract opencv-python numpy Pillow
 ```
 
 然后安装 Tesseract OCR 引擎：
-- Windows: 从 https://github.com/UB-Mannheim/tesseract/wiki 下载安装
+
+- Windows: 从 <https://github.com/UB-Mannheim/tesseract/wiki> 下载安装
 
 ### 方法3：安装所有依赖
 
@@ -196,6 +197,7 @@ python analyze_plates.py screenshot.jpg result.txt
 ```
 
 **示例**：
+
 - `CD88888`: 无4 → +10分
 - `CDP4444`: 4个4 → -40分
 
@@ -210,6 +212,7 @@ python analyze_plates.py screenshot.jpg result.txt
 **计算公式**：`(连续数量 - 1) × repeat_base_score`
 
 **示例**（基础分15）：
+
 - `CD88888`: 7个连续的8 → (7-1)×15 = **90分**
 - `CDP5555`: 4个连续的5 → (4-1)×15 = **45分**
 - `CD6677`: 2个连续的6 → (2-1)×15 = **15分**
@@ -225,6 +228,7 @@ python analyze_plates.py screenshot.jpg result.txt
 **计算公式**：`(6的数量 + 8的数量) × lucky_digit_score`
 
 **示例**（每个20分）：
+
 - `CD88888`: 5个8 → 5×20 = **100分**
 - `CD6789`: 1个6+1个8 → 2×20 = **40分**
 - `CDM6666`: 4个6 → 4×20 = **80分**
@@ -240,6 +244,7 @@ python analyze_plates.py screenshot.jpg result.txt
 **计算公式**：`(序列长度 - 2) × sequence_base_score`
 
 **示例**（基础分20）：
+
 - `CDM6789`: 4位递增 → (4-2)×20 = **40分**
 - `CD123`: 3位递增 → (3-2)×20 = **20分**
 
@@ -254,6 +259,7 @@ python analyze_plates.py screenshot.jpg result.txt
 ```
 
 **示例**：
+
 - `CD2468`: 全偶数 → **20分**
 - `CD1357`: 全奇数 → **20分**
 - `CD2467`: 奇偶混合 → 0分
@@ -268,6 +274,7 @@ python analyze_plates.py screenshot.jpg result.txt
 ```
 
 **示例**：
+
 - `CDQ2357`: 全是质数(2,3,5,7) → **20分**
 - `CD2348`: 3个质数，占75% → **10分**
 
@@ -282,6 +289,7 @@ python analyze_plates.py screenshot.jpg result.txt
 **计算公式**：`特殊字母数量 × special_letter_score`
 
 **示例**（每个10分）：
+
 - `CDM8888`: 有M → 1×10 = **10分**
 - `CDQ2357`: 有Q → 1×10 = **10分**
 - `CDMJ888`: 有M和J → 2×10 = **20分**
@@ -314,6 +322,7 @@ python analyze_plates.py screenshot.jpg result.txt
 ```
 
 **效果**：
+
 - `CD88888`: 超高分（连号90 + 吉祥150 = 240分）
 - `CDP4444`: 很低分（连号45 - 扣分80 = -35分）
 
@@ -344,6 +353,7 @@ python analyze_plates.py screenshot.jpg result.txt
 ```
 
 **效果**：
+
 - `CD5555`: 高分（连号75分）
 - `CD1234`: 高分（递增60分）
 
@@ -386,6 +396,7 @@ rows = 6  # 改为实际行数（从上到下有几行）
 ```
 
 **示例**：
+
 - 如果车牌排列是 4列×8行，改为 `cols = 4` 和 `rows = 8`
 - 左上角第一个 = 第1行第1列
 - 右上角最后一个 = 第1行第4列（4列的情况）
@@ -470,18 +481,23 @@ for detail in details:
 **A**: 系统会**自动检测**车牌的行列布局，无需手动配置！
 
 **位置逻辑**：
+
 - 自动识别车牌的行（Y坐标相近的为同一行）
 - 每行内按X坐标从左到右排序确定列号
 - 左上角为第1行第1列，向右递增列号，向下递增行号
 
 **如果位置仍不准确**，可能原因：
+
 1. **车牌间距过小或过大** → 调整行识别阈值（`analyze_plates.py` 第49行）
+
    ```python
    row_threshold = 50  # 默认50像素，可以改为30-100
    ```
+
 2. **车牌排列不规则** → 系统会尽量识别，但不规则布局可能不准确
 
 **位置说明**：
+
 - 第1行第1列 = 左上角第一个车牌
 - 第1行第2列 = 第1行中从左数第二个
 - 第2行第1列 = 第2行中最左边的车牌
@@ -493,6 +509,7 @@ for detail in details:
 **A**: 系统已经做了以下优化：
 
 **内置优化**：
+
 1. ✅ 图像预处理（灰度化、对比度增强、二值化）
 2. ✅ 只使用英文模型（不加载中文，更准确识别字母数字）
 3. ✅ 限制字符集为大写字母和数字（提高准确率）
@@ -524,6 +541,7 @@ for detail in details:
 ### Q5: weight 和 score_weights 有什么区别？
 
 **A**:
+
 - **`score_weights`**（推荐）：直接设置具体分数，如 `"lucky_digit_score": 30` 表示每个6/8得30分
 - **`weight`**（可选）：权重系数，如 `"weight": 2.0` 表示该规则最终得分乘以2
 
@@ -591,6 +609,7 @@ license_plate/
 ### 步骤1：确定优先级
 
 问自己以下问题：
+
 1. **最看重什么？** 吉祥数字？连号？递增？
 2. **最忌讳什么？** 数字4？
 3. **无所谓的因素？** 质数？奇偶？
@@ -598,6 +617,7 @@ license_plate/
 ### 步骤2：设置分数
 
 根据优先级设置分数：
+
 - **高优先级**：分数设为 20-30
 - **中优先级**：分数设为 10-15
 - **低优先级**：分数设为 5 或禁用规则
@@ -655,11 +675,13 @@ python analyze_plates.py 图片.jpg [输出.txt]
 | `special_letter_score` | 12 | **10** | ⬇️ -17% |
 
 **你的配置特点**：
+
 - ✅ 大幅提升吉祥数字6/8的重要性
 - ✅ 加强对数字4的惩罚
 - ✅ 平衡其他规则以保持整体合理性
 
 **预期效果**：
+
 - 含6/8的车牌会**明显优先**
 - 含4的车牌会被**严格过滤**
 - 整体偏好**传统吉祥数字**
